@@ -26,6 +26,7 @@ public class Product extends BaseEntity {
     private Song song;
     private int price;
 
+
     public Product(long id) {
         super(id);
     }

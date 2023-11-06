@@ -1,22 +1,29 @@
 package com.example.demo.domain.order.service;
 
+import com.example.demo.base.rsData.RsData;
 import com.example.demo.domain.cart.entity.CartItem;
 import com.example.demo.domain.cart.service.CartService;
 import com.example.demo.domain.member.entity.Member;
 import com.example.demo.domain.member.service.MemberService;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
+import com.example.demo.domain.order.exception.OrderIdNotMatchedException;
+import com.example.demo.domain.order.exception.OrderNotEnoughRestCashException;
 import com.example.demo.domain.order.repository.OrderItemRepository;
 import com.example.demo.domain.order.repository.OrderRepository;
 import com.example.demo.domain.product.entity.Product;
+import com.example.demo.util.Ut;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +33,7 @@ public class OrderService {
     private final CartService cartService;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+
 
     @Transactional
     public Order createFromCart(Member buyer) {
@@ -110,7 +118,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void payByTossPayments(Order order, long useRestCash) {
+    public void payByTossPayments(Order order, long useRestCash, String paymentKey) {
         Member buyer = order.getBuyer();
         int payPrice = order.calculatePayPrice();
 
@@ -123,6 +131,7 @@ public class OrderService {
         }
 
         order.setPaymentDone();
+        order.setPaymentKey(paymentKey);
         orderRepository.save(order);
     }
 
@@ -133,4 +142,6 @@ public class OrderService {
     public List<OrderItem> findAllByPayDateBetweenOrderByIdAsc(LocalDateTime fromDate, LocalDateTime toDate) {
         return orderItemRepository.findAllByPayDateBetween(fromDate, toDate);
     }
+
+
 }
